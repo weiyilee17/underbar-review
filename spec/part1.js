@@ -237,7 +237,7 @@
 
       it('returns the first index that the target can be found at when there are multiple matches', function() {
         var numbers = [10, 20, 30, 20];
-        expect(numbers).to.equal(1);
+        expect(_.indexOf(numbers, 20)).to.equal(1);
       });
     });
 
