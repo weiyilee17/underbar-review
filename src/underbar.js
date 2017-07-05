@@ -211,7 +211,7 @@
       hasAcc = false;
     }
 
-    _.each(collection, function(element){
+    _.each(collection, function(element) {
 
       if (hasAcc) { // this is what reduce does, accumulating to result to acc
         accumulator = iterator(accumulator, element, collection);
@@ -241,14 +241,29 @@
 
 
   // Determine whether all of the elements match a truth test.
-  _.every = function(collection, iterator) {
+  _.every = function(collection, iterator = _.identity) {
     // TIP: Try re-using reduce() here.
+
+    // !! is trying to convert values like 0, null, undefined to bool
+    return !!_.reduce(collection, function(acc, element) {
+      // as long as one is false, the result would end up with false
+      return acc && iterator(element);
+    }, true);
+
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
-  _.some = function(collection, iterator) {
+  _.some = function(collection, iterator = _.identity) {
     // TIP: There's a very clever way to re-use every() here.
+
+
+    // !! is trying to convert values like 0, null, undefined to bool
+    return !!_.reduce(collection, function(acc, element) {
+      // as long as one is false, the result would end up with false
+      return acc || iterator(element);
+    }, false);
+
   };
 
 
@@ -271,11 +286,34 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+
+    // for all the arguments passed in, which are objects
+    _.each(arguments, function(objects){
+      // for that object, for each of the key value pairs
+      _.each(objects, function(value, key){
+        obj[key] = value;
+      });
+    });
+
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+
+    // for all the arguments passed in, which are objects
+    _.each(arguments, function(objects){
+      // for that object, for each of the key value pairs
+      _.each(objects, function(value, key){
+        // only assign values to the key if that key doesn't exist yet
+        if (obj[key] === undefined) {
+          obj[key] = value;
+        }
+      });
+    });
+
+    return obj;
   };
 
 
@@ -319,6 +357,31 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+
+    // resultsOfFunctions is an object with key : the arguments, 
+    //                              and the value : the result
+    // we use closure to keep the key and values, like once
+    var resultsOfFunctions = {};
+
+    return function() {
+
+      // instead of saving each argument, saving the arguments as a string is easier
+      // what's important is it can be used as a way to map to the result
+      var args = JSON.stringify(arguments);
+
+      // if the arguments has never been paseed in before
+      if (resultsOfFunctions[args] === undefined) {
+        // record the arguments and the results, then return it.
+        resultsOfFunctions[args] = func.apply(this, arguments);
+        return resultsOfFunctions[args];
+
+      } else {  // if it has a record, then just return the result. Agian here I 
+                // write more code to make it clearer
+        return resultsOfFunctions[args];
+      }
+
+    };
+
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -328,6 +391,17 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+
+    // if ther is no arguments
+    if(arguments.length === 2){
+      setTimeout(func, wait);
+    } else {  // there is arguments
+      // save the arguments to a array
+      var args = Array.prototype.slice.call(arguments).slice(2);
+
+      func.apply(setTimeout, args);
+    }
+
   };
 
 
@@ -342,8 +416,47 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+
+    // make a copy of the original array
+    var newArray  = array.slice();
+
+    // an way to shuffle the array is to swap every element to a random element on 
+    // the left rest of the array. The problem of this is that the last element
+    // would have nobody else to swap to(it is possible that some previous element 
+    // swaps with it, but there is no garantee), so we can swap it after we swap 
+    // all but last element. Due to nature of this question, I would use for loop 
+    // to implement it since it does different stuff on the last element
+
+    var temp;
+    var randomIndex;
+    var i;
+
+    for(i = 0; i < newArray.length - 1; i++) {
+
+      // when i = newArray.length - 1, random index would be the same as i
+      // since it would be pointless to swap with itself, i only goes to
+      // newArray.length - 2
+      randomIndex = randombetween(i, newArray.length - 1);
+
+      // swap the 2 elements
+      temp = newArray[i];
+      newArray[i] = newArray[randomIndex];
+      newArray[randomIndex] = temp;
+
+    }
+
+    // swap the last element with one from the rest of the array
+    randomIndex = randombetween(0, i - 1);  // i = newArray.length - 1
+    temp = newArray[i];
+    newArray[i] = newArray[randomIndex];
+    newArray[randomIndex] = temp;
+
+    return newArray;
   };
 
+  function randombetween(lowerBound, upperBound) {
+    return Math.floor((Math.random() * (upperBound - lowerBound)) + lowerBound);
+  }
 
   /**
    * ADVANCED
