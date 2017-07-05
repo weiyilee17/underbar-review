@@ -288,7 +288,7 @@
         _.defaults(destination, source);
 
         expect(destination.a).to.equal(1);
-        expect(destination.b).to.equal(1);
+        expect(destination.b).to.equal(2);
 
         //throw new Error('This test is missing.');
       });
